@@ -1,0 +1,480 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language russian
+\language_package default
+\inputencoding utf8
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style russian
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Section
+Постановка задачи
+\end_layout
+
+\begin_layout Standard
+Даны два изображения 
+\begin_inset Formula $S,P$
+\end_inset
+
+ и бинарная маска 
+\begin_inset Formula $M$
+\end_inset
+
+.
+ Необходимо сгенерировать изображение, которое будет совпадать с 
+\begin_inset Formula $S$
+\end_inset
+
+ в тех местах, где 
+\begin_inset Formula $M=0$
+\end_inset
+
+, будет совпадать с 
+\begin_inset Formula $P$
+\end_inset
+
+ где 
+\begin_inset Formula $M\ne0$
+\end_inset
+
+.
+ Кроме того, нужно избежать границ копирования.
+\end_layout
+
+\begin_layout Section
+Алгоритм решения
+\end_layout
+
+\begin_layout Enumerate
+Вычисляем градиенты исходных изображений 
+\begin_inset Formula 
+\begin{align*}
+S_{x} & =\frac{\partial S}{\partial x}\\
+S_{y} & =\frac{\partial S}{\partial y}\\
+P_{x} & =\frac{\partial P}{\partial x}\\
+P_{y} & =\frac{\partial P}{\partial y}
+\end{align*}
+
+\end_inset
+
+используя свёртку с оператором 
+\begin_inset Formula $d=\left(-\frac{1}{2},0,\frac{1}{2}\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Создаём матрицы 
+\begin_inset Formula 
+\begin{align*}
+g_{x} & :=\begin{cases}
+S_{x} & M_{ij}=0\\
+P_{x} & M_{ij}\ne0
+\end{cases}\\
+g_{y} & :=\begin{cases}
+S_{y} & M_{ij}=0\\
+P_{y} & M_{ij}\ne0
+\end{cases}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Вычисляем преобразования Фурье 
+\begin_inset Formula 
+\begin{align*}
+G_{x} & :=\mathcal{F}\left\{ g_{x}\right\} \\
+G_{y} & :=\mathcal{F}\left\{ g_{y}\right\} \\
+F & :=\mathcal{F}\left\{ S\right\} 
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Вычисляем 
+\begin_inset Formula 
+\begin{align*}
+U_{nm} & =\frac{-F_{nm}+\lambda D_{x}G_{nm}^{x}+\lambda D_{y}G_{nm}^{y}}{\lambda\left(D_{x}^{2}+D_{y}^{2}\right)-1}\\
+u & =\mathcal{F}^{-1}\left\{ U\right\} 
+\end{align*}
+
+\end_inset
+
+для некоторого вещественного положительного 
+\begin_inset Formula $\lambda$
+\end_inset
+
+.
+ Операторы 
+\begin_inset Formula $D_{x},D_{y}$
+\end_inset
+
+ определены как
+\begin_inset Formula 
+\begin{align*}
+D_{x} & =j\sin\frac{2\pi n}{N},\\
+D_{x} & =j\sin\frac{2\pi m}{M}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Матрица 
+\begin_inset Formula $u$
+\end_inset
+
+ содержит конечное изображение.
+\end_layout
+
+\begin_layout Section
+Задача оптимизации
+\end_layout
+
+\begin_layout Subsection
+Одномерный случай
+\end_layout
+
+\begin_layout Standard
+Необходимо найти функцию 
+\begin_inset Formula $y\left(x\right)$
+\end_inset
+
+, являющуюся решением задачи минимизации
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\arg\min_{y}\int\left(y\left(x\right)-f\left(x\right)\right)^{2}dx+\lambda\int\left(y'\left(x\right)-g\left(x\right)\right)^{2}dx.
+\]
+
+\end_inset
+
+Известно, что минимум функционала вида 
+\begin_inset Formula 
+\[
+\arg\min_{y\left(x\right)}\int_{a}^{b}L\left(y\left(x\right),\frac{dy\left(x\right)}{dx},x\right)dx
+\]
+
+\end_inset
+
+удовлетворяет дифференциальному уравнению 
+\begin_inset Formula 
+\[
+\frac{d}{dx}\frac{\partial L}{\partial y'}-\frac{\partial L}{\partial y}=0.
+\]
+
+\end_inset
+
+В нашем случае 
+\begin_inset Formula $L=\left(y\left(x\right)-f\left(x\right)\right)^{2}+\lambda\left(y'\left(x\right)-g\left(x\right)\right)^{2}.$
+\end_inset
+
+ Вычислим производные 
+\begin_inset Formula 
+\begin{align*}
+\frac{d}{dx}\frac{\partial L}{\partial y'} & =2\lambda\left(y''\left(x\right)-g'\left(x\right)\right)\\
+\frac{\partial L}{\partial y} & =2\left(y\left(x\right)-f\left(x\right)\right)
+\end{align*}
+
+\end_inset
+
+Тогда
+\begin_inset Formula 
+\begin{align*}
+\lambda y''\left(x\right)-y\left(x\right) & =-f\left(x\right)+\lambda g'\left(x\right).
+\end{align*}
+
+\end_inset
+
+Будем решать ОДУ, используя преобразование Фурье.
+ Фурье образ искомой функции 
+\begin_inset Formula $y$
+\end_inset
+
+ обозначим 
+\begin_inset Formula $Y$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+Y_{k}:=\mathcal{F}\left\{ y\right\} =\sum_{n=0}^{N-1}e^{-2\pi j\frac{kn}{N}}y_{n}
+\]
+
+\end_inset
+
+Фурье образ производной 
+\begin_inset Formula $\frac{dy}{dx}$
+\end_inset
+
+ вычисляется при помощи оператора дифференцирования 
+\begin_inset Formula $D$
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\mathcal{F}\left\{ \frac{dy}{dx}\right\} =DY.
+\]
+
+\end_inset
+
+Оператор может иметь разный вид, например: 
+\begin_inset Formula 
+\begin{align*}
+D & =\frac{2\pi jk}{N},\\
+D & =j\sin\frac{2\pi k}{N}.
+\end{align*}
+
+\end_inset
+
+Из дифференциального уравнения получим алгебраическое, подставив вместо
+ функций их образы: 
+\begin_inset Formula 
+\[
+Y_{k}=\frac{-F_{k}+\lambda D_{k}G_{k}}{\lambda D_{k}^{2}-1}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Многомерный случай
+\end_layout
+
+\begin_layout Standard
+Требуется найти минимум функционала
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\arg\min_{u\left(x,y\right)}\int\left(u-f\left(x,y\right)\right)^{2}+\lambda\left\Vert \nabla u-g\left(x,y\right)\right\Vert ^{2}dxdy,
+\]
+
+\end_inset
+
+где функции 
+\begin_inset Formula $f\left(x,y\right):\mathbb{R}\times\mathbb{R}\to\mathbb{R}$
+\end_inset
+
+, 
+\begin_inset Formula $g\left(x,y\right)=\left(g^{x}\left(x,y\right),g^{y}\left(x,y\right)\right):\mathbb{R}\times\mathbb{R}\to\mathbb{R}^{2}$
+\end_inset
+
+ и константа 
+\begin_inset Formula $\lambda$
+\end_inset
+
+ заданы.
+\end_layout
+
+\begin_layout Standard
+Известно, что минимум функционала 
+\begin_inset CommandInset href
+LatexCommand href
+target "https://en.wikipedia.org/wiki/Euler%E2%80%93Lagrange_equation#Single_function_of_several_variables_with_single_derivative"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\arg\min_{u}\int L\left(x,y,u,u_{x},u_{y}\right)dxdy,
+\]
+
+\end_inset
+
+где 
+\begin_inset Formula 
+\begin{align*}
+u & :=u\left(x,y\right)\\
+u_{x} & :=\frac{\partial u\left(x,y\right)}{\partial x}\\
+u_{y} & :=\frac{\partial u\left(x,y\right)}{\partial y},
+\end{align*}
+
+\end_inset
+
+удовлетворяет ДУЧП 
+\begin_inset Formula 
+\[
+\frac{\partial}{\partial x}\frac{\partial L}{\partial u_{x}}+\frac{\partial}{\partial y}\frac{\partial L}{\partial u_{y}}-\frac{\partial L}{\partial u}=0.
+\]
+
+\end_inset
+
+В нашем случае 
+\begin_inset Formula 
+\begin{align*}
+L & =\left(u-f\right)^{2}+\lambda\left(\left(u_{x}-g^{x}\right)^{2}+\left(u_{y}-g^{y}\right)^{2}\right)\\
+L_{u} & =2\left(u-f\right)\\
+\frac{\partial}{\partial x}L_{u_{x}} & =2\lambda\left(u_{xx}-\frac{\partial g^{x}}{\partial x}\right)\\
+\frac{\partial}{\partial y}L_{u_{y}} & =2\lambda\left(u_{yy}-\frac{\partial g^{y}}{\partial y}\right),
+\end{align*}
+
+\end_inset
+
+значит ДУЧП будет 
+\begin_inset Formula 
+\begin{eqnarray*}
+\lambda\left(u_{xx}-\frac{\partial g^{x}}{\partial x}\right)+\lambda\left(u_{yy}-\frac{\partial g^{y}}{\partial y}\right)-\left(u-f\right) & = & 0.
+\end{eqnarray*}
+
+\end_inset
+
+или в краткой форме 
+\begin_inset Formula 
+\[
+\lambda\triangle u-u=\lambda\nabla\cdot g+f.
+\]
+
+\end_inset
+
+Преобразования Фурье 
+\begin_inset Formula 
+\begin{align*}
+\mathcal{F}\left\{ u\left(x,y\right)\right\}  & =U_{nm}\\
+\mathcal{F}\left\{ \frac{\partial u\left(x,y\right)}{\partial x}\right\}  & =D_{x}U_{nm}\\
+\mathcal{F}\left\{ \frac{\partial u\left(x,y\right)}{\partial y}\right\}  & =D_{y}U_{nm}
+\end{align*}
+
+\end_inset
+
+Тогда решение будет
+\begin_inset Formula 
+\begin{align*}
+U_{nm} & =\frac{-F_{nm}+\lambda D_{x}G_{nm}^{x}+\lambda D_{y}G_{nm}^{y}}{\lambda\left(D_{x}^{2}+D_{y}^{2}\right)-1}\\
+u & =\mathcal{F}^{-1}\left\{ U\right\} 
+\end{align*}
+
+\end_inset
+
+Операторы дифференцирования 
+\begin_inset Formula 
+\begin{align*}
+D_{x} & =j\sin\frac{2\pi n}{N}\\
+D_{x} & =j\sin\frac{2\pi m}{M}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset space ~
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
