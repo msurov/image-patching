@@ -37,6 +37,6 @@ There are three inputs
 
 and the result of the algorithms campated to the usual copy by the mask
 
-| Satisfactory result | Simple copy | 
+| Result of optimization | Simple copy | 
 |:---:|:---:|
 | [<img src="./data/out-merge.png" width="250"/>](./data/out-merge.png) | [<img src="./data/out-copy.png" width="250"/>](./data/out-copy.png)
