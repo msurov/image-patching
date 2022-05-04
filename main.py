@@ -1,62 +1,44 @@
-import cv2
+import fourier_merge
+import pyr_merge
 import numpy as np
+import cv2
 
-
-def merge(source, patch, mask, lam = 200000.0):
-    Sy = (np.roll(source, -1, axis=0) - np.roll(source, 1, axis=0)) / 2
-    Sx = (np.roll(source, -1, axis=1) - np.roll(source, 1, axis=1)) / 2
-    Py = (np.roll(patch, -1, axis=0) - np.roll(patch, 1, axis=0)) / 2
-    Px = (np.roll(patch, -1, axis=1) - np.roll(patch, 1, axis=1)) / 2
-
-    gx = Px * mask + Sx * (1 - mask)
-    gy = Py * mask + Sy * (1 - mask)
-    Gx = np.fft.fft2(gx)
-    Gy = np.fft.fft2(gy)
-    F = np.fft.fft2(source)
-
-    M,N = np.shape(F)
-    n = np.arange(0, N)
-    m = np.arange(0, M)
-    Dx = 1j * np.sin(2 * np.pi * n[np.newaxis,:] / N)
-    Dy = 1j * np.sin(2 * np.pi * m[:,np.newaxis] / M)
-
-    tmp1 = -F + lam * Dx * Gx + lam * Dy * Gy
-    tmp2 = lam * (Dx**2 + Dy**2) - 1
-
-    U = tmp1 / tmp2
-    u = np.fft.ifft2(U)
-    u = u.real
-    return u
 
 def copybymask(source, patch, mask):
     dst = source * (1 - mask) + patch * mask
     return dst
 
+
+def trivial_merge(u1, u2, mask):
+    assert u1.dtype == np.uint8
+    assert u2.dtype == np.uint8
+    assert mask.dtype == np.uint8
+    assert u1.shape == u2.shape
+    assert u1.shape[0:2] == mask.shape
+
+    mask = np.uint8(mask >= 128)
+
+    u = np.zeros(u1.shape, dtype=np.uint8)
+    for c in range(3):
+        u[:,:,c] = copybymask(u1[:,:,c], u2[:,:,c], mask)
+
+    return u
+
+
 def main():
-    source = cv2.imread('data/source.png')
-    source = source / 255.
-    patch = cv2.imread('data/patch.png')
-    patch = patch / 255.
-    mask = cv2.imread('data/mask.png', 0)
-    mask = np.uint8(mask > 0)
+    u1 = cv2.imread('data/sample-1/input-1.jpg')
+    u2 = cv2.imread('data/sample-1/input-2.jpg')
+    mask = cv2.imread('data/sample-1/mask.jpg', 0)
 
-    u = np.zeros(source.shape)
-    u[:,:,0] = merge(source[:,:,0], patch[:,:,0], mask)
-    u[:,:,1] = merge(source[:,:,1], patch[:,:,1], mask)
-    u[:,:,2] = merge(source[:,:,2], patch[:,:,2], mask)
+    u = trivial_merge(u1, u2, mask)
+    cv2.imwrite('data/sample-1/out-trivial.png', u)
 
-    u = np.clip(255 * u, 0, 255)
-    u = np.array(u, dtype=np.uint8)
-    cv2.imwrite('data/out-merge.png', u)
+    u = pyr_merge.merge(u1, u2, mask)
+    cv2.imwrite('data/sample-1/out-pyr.png', u)
 
-    u = np.zeros(source.shape)
-    u[:,:,0] = copybymask(source[:,:,0], patch[:,:,0], mask)
-    u[:,:,1] = copybymask(source[:,:,1], patch[:,:,1], mask)
-    u[:,:,2] = copybymask(source[:,:,2], patch[:,:,2], mask)
-
-    u = np.clip(255 * u, 0, 255)
-    u = np.array(u, dtype=np.uint8)
-    cv2.imwrite('data/out-copy.png', u)
+    u = fourier_merge.merge(u1, u2, mask)
+    cv2.imwrite('data/sample-1/out-fourier.png', u)
 
 
-main()
+if __name__ == '__main__':
+    main()
